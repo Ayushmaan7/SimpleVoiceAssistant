@@ -1,0 +1,79 @@
+import speech_recognition as sr
+import subprocess
+import os
+from twilio.rest import Client
+import smtplib           
+import ssl  
+from email.message import EmailMessage
+import pyttsx3
+
+
+def recognize_speech():
+    # Initialize the recognizer
+    recognizer = sr.Recognizer()
+
+    # Using the default system microphone as the audio source
+    with sr.Microphone() as source:
+        print("Say something...")
+        audio = recognizer.listen(source)
+
+    try:
+        # Recognize the speech using Google Web Speech API
+        recognized_text = recognizer.recognize_google(audio).lower()
+        print("You said:", recognized_text)
+
+        # Check the recognized_text and execute corresponding actions
+        if "notepad" in recognized_text:
+            subprocess.run(["notepad.exe"])
+        elif "calculator" in recognized_text:
+            subprocess.run(["calc.exe"])
+        elif "ms paint" in recognized_text: 
+            os.system("mspaint")
+        elif "message" in recognized_text:
+            account_sid="abcd"
+            auth_token="abcd"
+            client = Client(account_sid,auth_token)
+            message=client.messages.create(
+                body="This is sent from Python",
+                from_="+14325476376",
+                to="+911234567890",
+            )
+
+            print(message.sid)
+        elif "mail" in recognized_text:
+            email_sender = 'xyz@gmail.com'
+            email_password = 'abc'           
+            email_receiver = ['abc@gmail.com','ijk@gmail.com','123@gmail.com', ]         
+
+            subject = 'this is a python task  '   
+            body = """
+                   I have completed python task successfully again by setting up environment variable.
+                   """                                                
+
+
+            em = EmailMessage()
+            em['From'] = email_sender              
+            em['To'] = email_receiver              
+            em['Subject'] = subject               
+            em.set_content(body)                   
+            context = ssl.create_default_context()
+
+
+            with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
+                smtp.login(email_sender, email_password)      
+                smtp.sendmail(email_sender, email_receiver, em.as_string()) 
+    
+            print("email sent")
+        else:
+            print("Command not recognized.")
+    except sr.UnknownValueError:
+        print("Sorry, could not understand audio.")
+    except sr.RequestError as e:
+        print("Error accessing Google Speech Recognition service; {0}".format(e))
+
+if __name__ == "__main__":
+    speak=pyttsx3.init()
+    speak.say("Hello bhai i am your assistent")
+    speak.runAndWait()
+    speak.stop()
+    recognize_speech()
